@@ -1,0 +1,12 @@
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false #its a discovery server,shouldnt register itself,so the server does not register with or fetch a registry from other Eureka servers,
+    fetch-registry: false #we are configuring discover server ,so need to fetch registry service
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/ #e to point to its own /eureka/ endpoint using ${server.port} (which is set to 8761).
+
+#This YAML configures a Eureka discovery server
+server:
+  port: 8761

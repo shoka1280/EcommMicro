@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 16px;
+        }
+        .header h2 {
+            color: #1565c0;
+            margin: 0;
+        }
+        .content {
+            padding: 20px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        .details {
+            margin-top: 16px;
+        }
+        .details p {
+            margin: 6px 0;
+        }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>Order Confirmed</h2>
+    </div>
+
+    <div class="content">
+        <p>Hello <strong>{{CustomerName}}</strong>,</p>
+
+        <p>Your order has been successfully placed. Here are the order details:</p>
+
+        <div class="details">
+            <p><strong>Order ID:</strong> {{OrderId}}</p>
+            <p><strong>Order Date:</strong> {{OrderDate}}</p>
+            <p><strong>Total Amount:</strong> ₹{{OrderAmount}}</p>
+            <p><strong>Payment Status:</strong> {{PaymentStatus}}</p>
+            <p><strong>Delivery Address:</strong> {{DeliveryAddress}}</p>
+        </div>
+
+        <p>We’ll notify you once your order is shipped.</p>
+        <p>Thank you for shopping with us!</p>
+    </div>
+
+    <div class="footer">
+        <p>Need help? Reach out to our support team.</p>
+        <p>&copy; 2026 Your Company Name</p>
+    </div>
+</div>
+
+</body>
+</html>
