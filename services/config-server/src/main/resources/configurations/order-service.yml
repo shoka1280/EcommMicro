@@ -24,11 +24,20 @@ spring:
 
 application:
   config:
-     customer-url: http://localhost:8090/api/v1/customers
-     product-url: http://localhost:8050/api/v1/products
-     payment-url: http://localhost:8060/api/v1/payments
+     customer-url: http://localhost:8222/api/v1/customers
+     product-url: http://localhost:8222/api/v1/products
+     payment-url: http://localhost:8222/api/v1/payments
 
 
+logging:
+  level:
+    root: INFO
+    com.EcommMicro: DEBUG
+    org.springframework.web: DEBUG
+
+    org.hibernate.SQL: DEBUG
+
+    org.hibernate.orm.jdbc.bind: TRACE
 
 server:
    port: 8070

@@ -9,5 +9,12 @@ spring:
       server:
         native:
           search-locations: classpath:/configurations
+logging:
+  level:
+    root: INFO
+    com.EcommMicro: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
 server:
   port: 9090

@@ -13,6 +13,7 @@ public class PaymentService {
     private final NotificationProducer notification;
     public Integer createPayment(PaymentRequest request) {
         Payment payment=mapper.toPayment(request);
+        //paymets sents notificatin using kafka
         notification.sendNotification(
                 new PaymentNotificationRequest(
                         request.orderReference(),

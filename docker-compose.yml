@@ -10,12 +10,17 @@ services:
         PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres:/var/lib/postgresql/data
-      - ./init/create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql:ro
     networks:
         - microservice-network
     ports:
         - 5431:5432
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U shre" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   pgadmin:
     container_name: ms-pgadmin
@@ -50,6 +55,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 
   mongo-express:
@@ -58,32 +64,43 @@ services:
     ports:
       - 9000:8081
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/?authSource=admin
-
+      ME_CONFIG_MONGODB_URL: "mongodb://admin:password@mongodb:27017/?authSource=admin"
+      ME_CONFIG_BASICAUTH_ENABLED: "false"
     depends_on:
-       mongodb:
-         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - microservice-network
     restart: unless-stopped
 
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: ms-zookeeper
+
     environment:
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+
     ports:
-      - 22181:2181
+      - "22181:2181"
     networks:
       - microservice-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181 | grep -q '^Mode:'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: ms-kafka
     depends_on:
-      - zookeeper
+        zookeeper:
+             condition: service_healthy
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -93,25 +110,34 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      #PLAINTEXT:PLAINTEXT(used by other docker container),PLAINTEXT_HOST:PLAINTEXT(used by application rning onwindows)
+      KAFKA_ADVERTISED_LISTENERS:  PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
     ports:
       - 9092:9092
     networks:
       - microservice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "cub kafka-ready -b localhost:9092 1 5"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
 
   mail-dev:
+    image: maildev/maildev:3.0.0
     container_name: ms-mail-dev
-    image: maildev/maildev
     ports:
       - "1080:1080"
       - "1025:1025"
     networks:
       - microservice-network
     restart: unless-stopped
+
 networks:
   microservice-network:
     driver: bridge

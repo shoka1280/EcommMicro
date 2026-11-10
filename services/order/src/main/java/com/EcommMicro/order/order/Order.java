@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "orders")
 @EntityListeners(AuditingEntityListener.class)
 public class Order {
     @Id
@@ -28,7 +29,7 @@ public class Order {
     private String customerId;//using mongo db for customer
 
     @OneToMany(mappedBy = "order")
-    private List<OrderLine> orderLines;
+    private List<OrderLine> orderLines;//List of products in order
     @CreatedDate
     @Column(updatable = false,nullable = false)
     private LocalDateTime createdAt;

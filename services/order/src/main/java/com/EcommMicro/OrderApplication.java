@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan(basePackages = {"com.EcommMicro.order", "com.EcommMicro.kafka", "com.EcommMicro.customer", "com.EcommMicro.product","com.EcommMicro.payment"})
+@ComponentScan(basePackages = {"com.EcommMicro.order", "com.EcommMicro.kafka", "com.EcommMicro.customer", "com.EcommMicro.product","com.EcommMicro.payment","com.EcommMicro.config"})
 
 @EnableJpaAuditing
 public class OrderApplication {

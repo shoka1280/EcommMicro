@@ -12,6 +12,7 @@ import com.EcommMicro.payment.PaymentRequest;
 import com.EcommMicro.product.ProductClient;
 import com.EcommMicro.product.PurchaseRequest;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,28 +22,24 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    private final CustomerClient customerClient;
-    private final ProductClient productClient;
-    private final OrderRespository respository;
+    private final OrderRespository repository;
     private final OrderMapper mapper;
+    private final CustomerClient customerClient;
+    private final PaymentClient paymentClient;
+    private final ProductClient productClient;
     private final OrderLineService orderLineService;
     private final OrderProducer orderProducer;
-    private final PaymentClient paymentClient;
 
-//    private final ProductClient productClient;
-    public Integer createOrder(OrderRequest orderRequest) {
-        //check customer exists in customer service -->open feign client(CUSTOMER MICROSERVICE)
+    @Transactional
+    public Integer createOrder(OrderRequest request) {
+        var customer = this.customerClient.findCustomerById(request.customerId())
+                .orElseThrow(() -> new BusinessException("Cannot create order:: No customer exists with the provided ID"));
 
-        var customer=this.customerClient.findCustomerById(orderRequest.customerId())
-                .orElseThrow(()->new BusinessException("Cannnot order :No customer found"));
-        // purchase the product(PRODUCT MICROSERVICE) (Rest template)
-       var purchasedProducts= this.productClient.purchaseProducts(orderRequest.products());
+        var purchasedProducts = productClient.purchaseProducts(request.products());
 
-        //persisit order
-        var order=this.respository.save(mapper.toOrder(orderRequest));
-        //persisit order lines
-        for(PurchaseRequest purchaseRequest:orderRequest.products())
-        {
+        var order = this.repository.save(mapper.toOrder(request));
+
+        for (PurchaseRequest purchaseRequest : request.products()) {
             orderLineService.saveOrderLine(
                     new OrderLineRequest(
                             null,
@@ -52,41 +49,39 @@ public class OrderService {
 
                     )
             );
-
-            return order.getId();
-
         }
-        // start payement process
-        var paymentRequest=new PaymentRequest(orderRequest.amount(),
-                orderRequest.paymentMethod(),
+        var paymentRequest = new PaymentRequest(
+                request.amount(),
+                request.paymentMethod(),
                 order.getId(),
-                orderRequest.reference(),
-               customer
-                );
+                order.getReference(),
+                customer
+        );
         paymentClient.requestOrderPayment(paymentRequest);
-        // send order confirmation->NOTIFICATION SERVICE(KAFKA)
+
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
-                        orderRequest.reference(),
-                        orderRequest.amount(),
-                        orderRequest.paymentMethod(),
+                        request.reference(),
+                        request.amount(),
+                        request.paymentMethod(),
                         customer,
                         purchasedProducts
-
                 )
         );
-
 
         return order.getId();
     }
 
-    public List<OrderResponse> getAllOrders() {
-        return respository.findAll().stream().map(mapper::fromOrder)
+    public List<OrderResponse> findAllOrders() {
+        return this.repository.findAll()
+                .stream()
+                .map(this.mapper::fromOrder)
                 .collect(Collectors.toList());
     }
 
-    public OrderResponse getOrderById(Integer id) {
-        return respository.findById(id).map(mapper::fromOrder)
-                .orElseThrow(()->new EntityNotFoundException(String.format("Order not found: %d",id)));
+    public OrderResponse findById(Integer id) {
+        return this.repository.findById(id)
+                .map(this.mapper::fromOrder)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("No order found with the provided ID: %d", id)));
     }
 }

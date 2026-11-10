@@ -38,7 +38,7 @@ public class EmailService {
         variables.put("customerName",customerName);
         variables.put("orderRefrence",orderRefrence);
         variables.put("amount",amount);
-
+        //Thymleaf need context
         Context context=new Context();
         context.setVariables(variables);
         messageHelper.setSubject(EmailTemplates.PAYMENT_CONFIRMATION.getSubject());
@@ -55,37 +55,52 @@ public class EmailService {
                 log.warn("Cannnot send emai "+destinationEmail);
         }
     }
+
     @Async
-    public void sentOrderConfirmationEmail(String destinationEmail,
-                                           String customerName,
-                                           BigDecimal amount, String orderRefrence, List<Product> products) throws MessagingException {
-        MimeMessage mimeMessage=mailSender.createMimeMessage();
-        MimeMessageHelper messageHelper=new MimeMessageHelper(mimeMessage,MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+    public void sentOrderConfirmationEmail(
+            String destinationEmail,
+            String customerName,
+            BigDecimal amount,
+            String orderReference,
+            List<Product> products
+    ) throws MessagingException {
+
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+        MimeMessageHelper messageHelper = new MimeMessageHelper(
+                mimeMessage,
+                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                StandardCharsets.UTF_8.name()
+        );
+
         messageHelper.setFrom("contact@shreshthcoding.com");
-        final String templateName=EmailTemplates.Order_CONFIRMATION.getTemplate();
 
-        Map<String,Object> variables=new HashMap<>();
-        variables.put("customerName",customerName);
-        variables.put("orderRefrence",orderRefrence);
-        variables.put("totalamount",amount);
-        variables.put("products",orderRefrence);
+        final String templateName =
+                EmailTemplates.Order_CONFIRMATION.getTemplate();
 
+        Map<String, Object> variables = new HashMap<>();
 
-        Context context=new Context();
+        variables.put("customerName", customerName);
+        variables.put("orderReference", orderReference);
+        variables.put("totalAmount", amount);
+        variables.put("products", products);
+
+        Context context = new Context();
         context.setVariables(variables);
-        messageHelper.setSubject(EmailTemplates.Order_CONFIRMATION.getSubject());
 
-        try{
-            String htmlTemplate=templateEngine.process(templateName,context);
-            messageHelper.setText(htmlTemplate,true);
-            messageHelper.setTo(destinationEmail);
-            mailSender.send(mimeMessage);
+        messageHelper.setSubject(
+                EmailTemplates.Order_CONFIRMATION.getSubject()
+        );
 
-            log.info(String.format("INFO-Email successfullt sent to %s with template %s ",destinationEmail,templateName));
-        }
-        catch (MessagingException e){
-            log.warn("Cannnot send emai "+destinationEmail);
-        }
+        String htmlTemplate = templateEngine.process(templateName, context);
+
+        messageHelper.setText(htmlTemplate, true);
+        messageHelper.setTo(destinationEmail);
+
+        mailSender.send(mimeMessage);
+
+        log.info("Email successfully sent to {} using template {}",
+                destinationEmail, templateName);
     }
 
 }
