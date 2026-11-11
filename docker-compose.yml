@@ -94,6 +94,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -138,9 +139,19 @@ services:
       - microservice-network
     restart: unless-stopped
 
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+    networks:
+      - microservice-network
+    restart: unless-stopped
+
 networks:
   microservice-network:
     driver: bridge
+
 
 volumes:
   postgres:

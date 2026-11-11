@@ -6,7 +6,15 @@ eureka:
     fetch-registry: false #we are configuring discover server ,so need to fetch registry service
     service-url:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/ #e to point to its own /eureka/ endpoint using ${server.port} (which is set to 8761).
+#Zipkin
+management:
+  tracing:
+    sampling:
+      probability: 1.0
 
+    export:
+      zipkin:
+        endpoint: http://localhost:9411/api/v2/spans
 #This YAML configures a Eureka discovery server
 server:
   port: 8761
